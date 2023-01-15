@@ -1,0 +1,143 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<style>
+    .bottom-aligned {
+        position: absolute;
+        bottom: 0;
+    }
+    .container {
+       padding: 8px 0 0 0;
+        display: flex;
+        flex-direction: row;
+    }
+    .container label{
+        padding-left: 10px;
+    }
+    .center-text {
+        text-align: center;
+        font-size: 20px;
+    }
+    .top-padding {
+        padding: 30px 0px 0px 0px;
+    }
+    .left-padding {
+        padding: 0px 0px 0px 10px;
+    }
+    .result-container {
+        text-align: center;
+        font-size: 20px;
+        padding: 10px 0 0 0 ;
+    }
+
+</style>
+
+
+<body>
+    <div class="top-padding">
+        <label for="groupCode">Group Code:</label>
+        <input type="text" id="groupCode" name="groupCode">
+        <button id="getGroupsAndCustomersBtn">Get Groups and Customers</button>
+        <div id="dataContainer"></div>
+        <label id="notFound"></label>
+    </div>
+
+
+    <div class="bottom-aligned">
+        <div class="center-text">
+            <b>
+                ADD NEW CUSTOMER
+            </b>
+        </div>
+        <div class="container">
+            <label for="customerId">Customer ID:</label>
+            <input type="text" id="customerId" name="customerId">
+            <br>
+            <label for="customerName">Customer Name:</label>
+            <input type="text" id="customerName" name="customerName">
+            <br>
+            <label for="address">Address:</label>
+            <input type="text" id="address" name="address">
+            <br>
+        </div>
+        <div class="container">
+            <label for="phone">Phone number:</label>
+            <input type="text" id="phone" name="phone">
+            <br>
+            <label for="groupCode">Group Code:</label>
+            <input type="text" id="groupCodeAdd" name="groupCode">
+            <br>
+            <label for="factoryCode">Factory Code:</label>
+            <input type="text" id="factoryCode" name="factoryCode">
+            <br>
+        </div>
+        <button id="addBtn">Add</button>
+        <div id="addResultContainer" class="result-container"></div>
+    </div>
+
+</body>
+
+<script>
+    document.getElementById("getGroupsAndCustomersBtn").addEventListener("click", function () {
+        let groupCode = document.getElementById("groupCode").value;
+        document.getElementById("dataContainer").innerHTML = "";
+        fetch("/Home/GetGroupsAndCustomers", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ groupCode: groupCode })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.length === 0) {
+                    document.getElementById("dataContainer").innerHTML = "NO RESULT WERE FOUND"
+
+                    return;
+                }
+                let dataContainer = document.getElementById("dataContainer");
+                data.forEach(item => {
+                    let itemRow = document.createElement("div");
+                    itemRow.innerHTML = `
+                    Group Code: ${item.groupCode} <br>
+                    Group Name: ${item.groupName} <br>
+                    Customer Id: ${item.customerId} <br>
+                    Customer Name: ${item.name} <br>
+                `;
+                    dataContainer.appendChild(itemRow);
+                });
+            });
+    });
+
+    document.getElementById("addBtn").addEventListener("click", function () {
+        let customerId = document.getElementById("customerId").value;
+        let customerName = document.getElementById("customerName").value;
+        let address = document.getElementById("address").value;
+        let phone = document.getElementById("phone").value;
+        let groupCode = document.getElementById("groupCodeAdd").value;
+        let factoryCode = document.getElementById("factoryCode").value;
+        fetch("/Home/AddNewCustomer", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                customerId: customerId,
+                customerName: customerName,
+                address: address,
+                phone: phone,
+                groupCode: groupCode,
+                factoryCode: factoryCode
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data == "OK") {
+                    document.getElementById("addResultContainer").innerHTML = "Customer was added"
+                }
+                if (data == "BAD") {
+                    document.getElementById("addResultContainer").innerHTML = "Could not add new customer"
+                }
+            })
+
+    });
+
+
+</script>
